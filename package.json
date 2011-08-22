@@ -1,0 +1,19 @@
+{ 
+  "name": "zendeskjs",
+  "description": "A Zendesk API client",
+  "version": "0.0.1",
+  "author": {
+    "name": "Mikito Takada",
+    "email": "mixu@mixu.net",
+    "url": "http://blog.mixu.net/"
+    },
+  "keywords": ["zendesk"],
+  "repository": "git://github.com/mixu/zendesk.js",
+  "main": "zendesk.js",
+  "dependencies": {
+    "pixiedust": "0.0.x"
+  },
+  "devDependencies": {
+    "async_testing": "0.3.x"
+  }
+}
