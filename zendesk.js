@@ -1,17 +1,39 @@
-var Collection = require('pixiedust').Collection;
-var Client = require('pixiedust').Client;
-var Oauth = require('pixiedust').Oauth2;
+if(typeof exports != 'undefined') {
+  var Collection = require('pixiedust').Collection;
+  var Client = require('pixiedust').Client;
+  var OAuth = require('pixiedust').Oauth2;
+  var BasicAuth = require('pixiedust').BasicAuth;
+  var Cache = require('pixiedust').Cache;
+}
 
 Collection.client = Client({ 
   host: 'support.localhost',
-  port: 3000,
-  secure: false,
-  auth: new Oauth({access_token: ''})
+  secure: true,
+//  auth: new BasicAuth({
+//    email: 'agent@zendesk.com',
+//    password: '123456'
+//  })
+  // new OAuth({access_token: ''})
 });
 
-Zendesk = {};
+if(typeof Zendesk == 'undefined') {
+  Zendesk = {};
+  Collection.client = Client({ 
+    host: 'support.localhost',
+    port: 443,
+    secure: true,
+    auth: new BasicAuth({
+      email: 'agent@zendesk.com',
+      password: '123456'
+    })
+    // new OAuth({access_token: ''})
+  });
+}
 
-Zendesk.users = Collection.initialize('user', {
+Zendesk.API = {};
+Zendesk.API.cache = new Cache();
+
+Zendesk.API.users = Collection.initialize('user', {
     me: {
       url: '/users/current.json'
     },
@@ -21,10 +43,25 @@ Zendesk.users = Collection.initialize('user', {
       wrap: 'user'  // wrap the data into { user: ... }
     },
     read: {   
-      url: '/users/{id}.json'
+      url: '/users/{id}.json',
+      cache: {
+        has: function(params) {
+          console.log('Zendesk.API.cache.has', params.id, Zendesk.API.cache.has('user', params.id));
+          return Zendesk.API.cache.has('user', params.id);
+        },
+        get: function(params) {
+          console.log('Zendesk.API.cache.get', params.id);
+          return Zendesk.API.cache.get('user', params.id);
+        },
+        set: function(params, data) {
+          console.log('Zendesk.API.cache.set', params.id, data);
+          return Zendesk.API.cache.set('user', params.id, data);
+        }
+      }
     },
     update: {
-      url: '/users/{id}.json'
+      url: '/users/{id}.json',
+      wrap: 'user'  // wrap the data into { user: ... }
     },
     del: {
       url: '/users/{id}.json'      
@@ -50,10 +87,26 @@ Zendesk.users = Collection.initialize('user', {
         url: '/groups/{group}/users.json',
         pagination: true
       },
+    },
+    has_many: {
+      identities: Collection.initialize('identity', {
+        create: {
+          url: '/users/{user}/user_identities.json'
+        },
+        read: {
+          url: '/users/{user}/user_identities/{id}.json'
+        },
+        del: {
+          url: '/users/{user}/user_identities/{id}.json'
+        },
+        list: {
+          url: '/users/{user}/user_identities.json'
+        }
+      })
     }
   });
 
-Zendesk.groups = Collection.initialize('group', {
+Zendesk.API.groups = Collection.initialize('group', {
     list: {
       'url': '/groups.json',
       pagination: true
@@ -67,12 +120,12 @@ Zendesk.groups = Collection.initialize('group', {
     update: {
       url: '/groups/{id}.json'
     },
-    "delete": {
+    del: {
       url: '/groups/{id}.json'      
     }  
 });
 
-Zendesk.organizations = Collection.initialize('organization', {
+Zendesk.API.organizations = Collection.initialize('organization', {
     list: {
       'url': '/organizations.json',
       pagination: true
@@ -86,23 +139,28 @@ Zendesk.organizations = Collection.initialize('organization', {
     update: {
       url: '/organizations/{id}.json'
     },
-    "delete": {
+    del: {
       url: '/organizations/{id}.json'      
     }    
 });
 
-Zendesk.tickets = Collection.initialize('ticket', {
+Zendesk.API.tickets = Collection.initialize('ticket', {
     create: { 
-      url: '/tickets.json'
+      url: '/tickets.json',
+      wrap: 'ticket'  // wrap the data 
     },
     read: {   
       url: '/tickets/{id}.json'
     },
     update: {
-      url: '/tickets/{id}.json'
+      url: '/tickets/{id}.json',
+      wrap: 'ticket'  // wrap the data 
     },
-    "delete": {
+    del: {
       url: '/tickets/{id}.json'      
+    },
+    list: {
+      url: '/rules/{view}.json'
     },
     find: {
       by_tag: {
@@ -165,7 +223,7 @@ Zendesk.tickets = Collection.initialize('ticket', {
 });
 
 
-Zendesk.forums = Collection.initialize('forum', {
+Zendesk.API.forums = Collection.initialize('forum', {
     list: {
       'url': '/forums.json',
       pagination: true
@@ -179,11 +237,11 @@ Zendesk.forums = Collection.initialize('forum', {
     update: {
       url: '/forums/{id}.json'
     },
-    "delete": {
+    del: {
       url: '/forums/{id}.json'      
     },
     has_many: {
-      entries: {
+      entries: Collection.initialize('entry', {
         list: {
           'url': '/forums/{forum_id}/entries.json',
           pagination: true
@@ -197,7 +255,7 @@ Zendesk.forums = Collection.initialize('forum', {
         update: {
           url: '/entries/{id}.json'
         },
-        "delete": {
+        del: {
           url: '/entries/{id}.json'      
         },    
         find: {
@@ -208,7 +266,7 @@ Zendesk.forums = Collection.initialize('forum', {
           
         },
         has_many: {
-          posts: {
+          posts: Collection.initialize('post', {
             create: { 
               url: '/posts.json'
             },
@@ -219,12 +277,15 @@ Zendesk.forums = Collection.initialize('forum', {
             update: {
               url: '/posts/{id}.json'
             },
-            "delete": {
+            del: {
               url: '/posts/{id}.json'      
             }    
-          }
+          })
         }
-      }      
+      })
     }
   });
-module.exports = Zendesk;
+
+if(typeof exports != 'undefined') {
+  module.exports = Zendesk.API;
+}

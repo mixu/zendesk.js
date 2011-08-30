@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Browser test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+    <!-- Client dependencies -->
+    <script src="vendor/jquery-1.6.1.min.js"></script>
+    <!-- Underscore is emulated on Node, real in browser -->
+    <script src="vendor/underscore-min.js"></script>
+
+    <script src="lib/pixiedust.min.js"></script>
+<!--    <script src="lib/pixiedust/lib/basicauth.js"></script> -->
+<!--    <script src="lib/pixiedust/lib/client.jquery.js"></script> -->
+<!--    <script src="lib/pixiedust/lib/search.js"></script> -->
+<!--    <script src="lib/pixiedust/lib/collection.js"></script> -->
+<!--    <script src="lib/pixiedust/lib/oauth2.js"></script> -->
+    <!-- Client library -->
+    <script src="lib/zendesk.js"></script>
+    <!-- OPTIONAL: json2 is needed for reporting in JSON on legacy browsers -->    
+    <script src="vendor/json2.js"></script>
+    <!-- QUnit -->
+    <link rel="stylesheet" type="text/css" href="vendor/qunit.css"> 
+    <script type="text/javascript" src="vendor/qunit.js"></script> 
+    <!-- Tests -->
+    <script type="text/javascript" src="spec/zendesk.test.js"></script> 
+  </head>
+  <body>
+    <h1>Zendesk.js</h1>    
+    
+    <h1 id="qunit-header">QUnit Test Suite</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    
+  </body>
+</html>
